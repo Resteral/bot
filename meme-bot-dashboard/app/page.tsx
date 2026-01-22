@@ -25,12 +25,15 @@ export default function Home() {
   const [logs, setLogs] = useState<string[]>([]);
 
   useEffect(() => {
-    // Connect to Backend (Ensure port matches env but hardcoded for dev now)
-    const newSocket = io("http://localhost:3001");
+    // Connect to Backend (Use Env var or default to localhost)
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
+    console.log("Connecting to:", BACKEND_URL);
+
+    const newSocket = io(BACKEND_URL);
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
-      addLog("Connected to Bot Engine");
+      addLog(`Connected to Bot Engine at ${BACKEND_URL}`);
     });
 
     newSocket.on("walletUpdate", (data) => {
@@ -54,15 +57,16 @@ export default function Home() {
   };
 
   const fetchStatus = async () => {
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
     try {
-      const res = await axios.get("http://localhost:3001/api/status");
+      const res = await axios.get(`${BACKEND_URL}/api/status`);
       setWallet({
         balance: res.data.balance,
         publicKey: res.data.publicKey
       });
       addLog(`Wallet loaded: ${res.data.publicKey.slice(0, 6)}...`);
     } catch (e) {
-      addLog("Error fetching status. Is backend running?");
+      addLog(`Error fetching status from ${BACKEND_URL}`);
     }
   };
 
